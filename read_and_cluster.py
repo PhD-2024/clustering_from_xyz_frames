@@ -171,7 +171,7 @@ if __name__ == "__main__":
     for key in cluster_dict:
         output_with_key=args.outname.replace(".txt", f"_{key}.txt")
         with open(output_with_key, 'w') as output_file:
-           print(*cluster_dict[key], file=output_file)
+           print(*cluster_dict[key], file=output_file, sep=",")
 
 
 
