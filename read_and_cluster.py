@@ -138,8 +138,9 @@ if __name__ == "__main__":
     parser.add_argument(
         "--filename",
         type=str,
-        default="testfile_h.xyz",
-        help="Path to the XYZ file (default: testfile_h.xyz)"
+        #default="tests/testfile_h.xyz",
+        default="tests/Dimer-2metal_OptionA.xyz",
+        help="Path to the XYZ file"
     )
     parser.add_argument(
         "--cutoff",
@@ -150,10 +151,15 @@ if __name__ == "__main__":
     parser.add_argument(
         "--outname",
         type=str,
-        default="outputfile.txt",
+        default="tests/outputfile.txt",
         help="Name of the output file (default: outputfile.txt)"
     )
-    parser.add_argument("--indexing_1", type=str_to_bool, default=False, help="If True, output indices will be 1-indexed (default: True)")
+    parser.add_argument("--pass_to_Multiwfn", type=str_to_bool, default=True, help="If True, pass the clusters to Multiwfn (default: False)")
+    parser.add_argument("--select_N_largest_clusters", type=int, default=2, help="If >0, select the N largest clusters (default: 2) for passing to Multiwfn")
+    parser.add_argument("--indexing_1", type=str_to_bool, default=True, help="If True, output indices will be 1-indexed (default: True)")
+    #parser.add_argument("--logname", type=str, default="spectrum.log", help="Name of the log file (default: spectrum.log)")
+    #parser.add_argument("--fchk_name", type=str, default="spectrum.fchk", help="Name of the fchk file (default: spectrum.fchk)")
+    parser.add_argument("--states", default=[1,2], help="List of states to analyze (default: [1, 2])")
     args = parser.parse_args()
 
     atoms, num_atoms = read_xyz_file(args.filename)
@@ -184,3 +190,33 @@ if __name__ == "__main__":
     plt.title('Histogram of Cluster Sizes')
     plt.savefig('cluster_sizes_histogram.pdf')
     #plt.show()
+
+#select the N-largest clusters
+
+if args.pass_to_Multiwfn and args.select_N_largest_clusters > 0:
+    d={}
+    counter=0
+    sorted_clusters = sorted(clust_sizes.items(), key=lambda item: item[1], reverse=True)
+    largest_clusters = sorted_clusters[:args.select_N_largest_clusters]
+
+
+    for cluster_index, size in largest_clusters:
+
+        output_with_key=args.outname.replace(".txt", f"_{cluster_index}.txt")
+        with open(output_with_key, 'r') as output_file:
+            atoms_in_cluster = output_file.read() #.strip()
+            d[counter] = atoms_in_cluster.strip()
+            counter += 1
+           
+    tmp_string=""
+    for i in range(args.select_N_largest_clusters):
+        tmp_string+=" '" + str(d[i]) + "'"
+
+    print("suggested Multiwfn run:")
+
+    print("-----------------------------------------")
+    for state in args.states:
+        print(f"for {args.select_N_largest_clusters} largest clusters and state {state}:")
+        
+        print(f"bash preliminary_bash_script.sh {args.select_N_largest_clusters} {state} {tmp_string} ")
+        print("-----------------------------------------")

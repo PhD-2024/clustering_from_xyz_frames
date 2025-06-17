@@ -1,2 +1,4 @@
 outputfile*
 *pdf
+tests/outputfile*
+tests/*_*_*.*
