@@ -2,3 +2,4 @@ outputfile*
 *pdf
 tests/outputfile*
 tests/*_*_*.*
+tests/*fchk
